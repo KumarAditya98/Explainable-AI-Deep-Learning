@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="ubuntu@34.203.191.93:22 key" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@3.84.55.39:22 key" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="ubuntu@34.203.191.93:22 key">
+      <paths name="DL">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/ubuntu/deep_t2" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/ubuntu/DL" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@3.84.55.39:22 key">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/DL" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
