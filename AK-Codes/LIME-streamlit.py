@@ -1,6 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
-from lime_explainer import explainer, tokenizer, METHODS
+#from lime_explainer import explainer, tokenizer, METHODS
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
