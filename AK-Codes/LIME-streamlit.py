@@ -39,77 +39,80 @@ st.text("")
 #     index=4,
 #     format_func=format_dropdown_labels,
 # )
-st.file_uploader("Upload Model",accept_multiple_files = False, help = 'Upload H5 file')
-st.text("")
-st.file_uploader("Upload Model Class",accept_multiple_files = False, help = 'Upload a Python file that contains just the class of the model that is used')
-st.file_uploader('Upload Image that needs to be analyzed')
 
-np.random.seed(123)
-def load_image_data_from_url(url):
-    '''
-    Function to load image data from online
-    '''
-    # The local path to our target image
-    image_path = keras.utils.get_file("shark.jpg", url)
+from io import StringIO
+import re
+model = st.file_uploader("Upload Model",accept_multiple_files = False, help = 'Upload H5 file')
+model_class = st.file_uploader("Upload Model Class",accept_multiple_files = False, help = 'Upload a Python file that contains just the class of the model that is used')
+image = st.file_uploader('Upload Image that needs to be analyzed')
+if model_class is not None:
+    stringio = StringIO(model_class.getvalue().decode("utf-8"))
+    string_data = stringio.read()
+    clean_string = re.sub(r'#.*', '', string_data)
+    clean_string = re.sub(r'(\'\'\'(.|\n)*?\'\'\'|"""(.|\n)*?""")', '', clean_string, flags=re.DOTALL)
+    st.write(clean_string)
 
-    display(Image(image_path))
-    return image_path
-
-image_path = load_image_data_from_url(url = "https://images.unsplash.com/photo-1560275619-4662e36fa65c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80")
-
-IMG_SIZE = (299, 299)
-def transform_image(image_path, size):
-    '''
-    Function to transform an image to normalized numpy array
-    '''
-    img = image.load_img(image_path, target_size=size)
-    img = image.img_to_array(img)  # Transforming the image to get the shape as [channel, height, width]
-    img = np.expand_dims(img, axis=0)  # Adding dimension to convert array into a batch of size (1,299,299,3)
-    img = img / 255.0  # normalizing the image to keep within the range of 0.0 to 1.0
-
-    return img
-normalized_img = transform_image(image_path, IMG_SIZE)
-
-from tensorflow.keras.applications.xception import Xception
-model = Xception(weights="imagenet")
-
-def get_model_predictions(data):
-    model_prediction = model.predict(data)
-    print(f"The predicted class is : {decode_predictions(model_prediction, top=1)[0][0][1]}")
-    return decode_predictions(model_prediction, top=1)[0][0][1]
-
-#plt.imshow(normalized_img[0])
-pred_orig = get_model_predictions(normalized_img)
-
-if st.button("Explain Results"):
-    with st.spinner('Calculating...'):
-        explainer = lime_image.LimeImageExplainer()
-        exp = explainer.explain_instance(normalized_img[0],
-                                         model.predict,
-                                         top_labels=5,
-                                         hide_color=0,
-                                         num_samples=1000)
-        # Display explainer HTML object
-        plt.imshow(exp.segments)
-        plt.axis('off')
-        plt.show()
-
-
-        def generate_prediction_sample(exp, exp_class, weight=0.1, show_positive=True, hide_background=True):
-            '''
-            Method to display and highlight super-pixels used by the black-box model to make predictions
-            '''
-            image, mask = exp.get_image_and_mask(exp_class,
-                                                 positive_only=show_positive,
-                                                 num_features=6,
-                                                 hide_rest=hide_background,
-                                                 min_weight=weight
-                                                 )
-            plt.imshow(mark_boundaries(image, mask))
-            plt.axis('off')
-            plt.show()
-
-
-        generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=True)
-
-        generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=False)
+#
+# np.random.seed(123)
+# def load_image_data_from_url(url):
+#     '''
+#     Function to load image data from online
+#     '''
+#     # The local path to our target image
+#     image_path = keras.utils.get_file("shark.jpg", url)
+#
+#     display(Image(image_path))
+#     return image_path
+#
+# image_path = load_image_data_from_url(url = "https://images.unsplash.com/photo-1560275619-4662e36fa65c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80")
+#
+# IMG_SIZE = (299, 299)
+# def transform_image(image_path, size):
+#     '''
+#     Function to transform an image to normalized numpy array
+#     '''
+#     img = image.load_img(image_path, target_size=size)
+#     img = image.img_to_array(img)  # Transforming the image to get the shape as [channel, height, width]
+#     img = np.expand_dims(img, axis=0)  # Adding dimension to convert array into a batch of size (1,299,299,3)
+#     img = img / 255.0  # normalizing the image to keep within the range of 0.0 to 1.0
+#
+#     return img
+# normalized_img = transform_image(image_path, IMG_SIZE)
+#
+# from tensorflow.keras.applications.xception import Xception
+# model = Xception(weights="imagenet")
+#
+# def get_model_predictions(data):
+#     model_prediction = model.predict(data)
+#     print(f"The predicted class is : {decode_predictions(model_prediction, top=1)[0][0][1]}")
+#     return decode_predictions(model_prediction, top=1)[0][0][1]
+#
+# #plt.imshow(normalized_img[0])
+# pred_orig = get_model_predictions(normalized_img)
+#
+# if st.button("Explain Results"):
+#     with st.spinner('Calculating...'):
+#         explainer = lime_image.LimeImageExplainer()
+#         exp = explainer.explain_instance(normalized_img[0],
+#                                          model.predict,
+#                                          top_labels=5,
+#                                          hide_color=0,
+#                                          num_samples=1000)
+#         # Display explainer HTML object
+#         st.image(exp.segments)
+#
+#
+#         def generate_prediction_sample(exp, exp_class, weight=0.1, show_positive=True, hide_background=True):
+#             '''
+#             Method to display and highlight super-pixels used by the black-box model to make predictions
+#             '''
+#             image, mask = exp.get_image_and_mask(exp_class,
+#                                                  positive_only=show_positive,
+#                                                  num_features=6,
+#                                                  hide_rest=hide_background,
+#                                                  min_weight=weight
+#                                                  )
+#             st.image(mark_boundaries(image, mask))
+#         generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=True)
+#
+#         generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=False)
