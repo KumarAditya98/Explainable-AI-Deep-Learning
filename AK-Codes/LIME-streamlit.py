@@ -116,3 +116,17 @@ if model_class is not None:
 #         generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=True)
 #
 #         generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=False)
+#         generate_prediction_sample(exp, exp.top_labels[0], show_positive=False, hide_background=False)
+#
+#
+#         def explanation_heatmap(exp, exp_class):
+#             '''
+#             Using heat-map to highlight the importance of each super-pixel for the model prediction
+#             '''
+#             dict_heatmap = dict(exp.local_exp[exp_class])
+#             heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
+#             st.image(heatmap,  cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
+#
+#
+#
+#         explanation_heatmap(exp, exp.top_labels[0])
