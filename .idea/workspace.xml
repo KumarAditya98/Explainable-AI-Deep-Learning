@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c76cc38b-41ba-4582-90e2-261d88f648fc" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/fake_faces_data_generation/dcgan.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/codes.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/deployment.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/.idea/webServers.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gan_try_codes/Image GAN/gan.py" beforeDir="false" />
-    </list>
+    <list default="true" id="c76cc38b-41ba-4582-90e2-261d88f648fc" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -29,16 +18,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "true",
-    "last_opened_file_path": "/Users/medhaswetasen/Documents/GitHub/Deep_Learning_Team_2",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/medhaswetasen/Documents/GitHub/Deep_Learning_Team_2&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
