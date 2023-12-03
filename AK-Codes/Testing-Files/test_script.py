@@ -172,7 +172,7 @@ def model_definition(pretrained=False):
     else:
         model = CNN()
 
-    model.load_state_dict(torch.load('model_{}.pt'.format(NICKNAME), map_location=device))
+    model.load_state_dict(torch.load('model.pt', map_location=device))
     model = model.to(device)
 
     print(model, file=open('summary_{}.txt'.format(NICKNAME), "w"))
@@ -399,27 +399,47 @@ def process_target(target_type):
 
 if __name__ == '__main__':
 
-    for file in os.listdir(PATH+os.path.sep + "excel"):
-        if file[-5:] == '.xlsx':
-            FILE_NAME = PATH+ os.path.sep+ "excel" + os.path.sep + file
+    # for file in os.listdir(PATH+os.path.sep + "excel"):
+    #     if file[-5:] == '.xlsx':
+    #         FILE_NAME = PATH+ os.path.sep+ "excel" + os.path.sep + file
 
     # Reading and filtering Excel file
-    xdf_data = pd.read_excel(FILE_NAME)
+    # xdf_data = pd.read_excel(FILE_NAME)
 
     ## Processing Train dataset
     ## Target_type = 1  Multiclass   Target_type = 2 MultiLabel
-    class_names = process_target(target_type = 2)
+    # class_names = process_target(target_type = 2)
 
     ## Balancing classes , all groups have the same number of observations
-    xdf_dset_test= xdf_data[xdf_data["split"] == SPLIT].copy()
+    #xdf_dset_test= xdf_data[xdf_data["split"] == SPLIT].copy()
 
     ## read_data creates the dataloaders, take target_type = 2
 
-    test_ds = read_data(target_type = 2)
+    #test_ds = read_data(target_type = 2)
 
-    OUTPUTS_a = len(class_names)
+    #OUTPUTS_a = len(class_names)
+    OUTPUTS_a = 10
 
     list_of_metrics = ['f1_macro']
     list_of_agg = ['avg']
 
-    test_model(test_ds, list_of_metrics, list_of_agg, pretrained=True)
+    #test_model(test_ds, list_of_metrics, list_of_agg, pretrained=True)
+    #model, criterion = model_definition(pretrained=True)
+    model = models.resnet18(pretrained=True)
+    model.fc = nn.Linear(model.fc.in_features, 10)
+    model.load_state_dict(torch.load('model.pt', map_location='cpu'),strict=False)
+    model = model.to('cpu')
+    import torchvision
+    transform = torchvision.transforms.Compose([
+                torchvision.transforms.Resize((224, 224)),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(
+                                        mean=[0.485, 0.456, 0.406],
+                                        std=[0.229, 0.224, 0.225])])
+    from PIL import Image
+    image = Image.open("img_9999.jpg")
+    image = transform(image)
+    img = image.unsqueeze(0)
+    with torch.no_grad():
+        output = model(img)
+    print(output)

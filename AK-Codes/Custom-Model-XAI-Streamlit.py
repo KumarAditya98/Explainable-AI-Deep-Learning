@@ -56,28 +56,31 @@ def main():
     title_text = 'AI Explainability Dashboard: Image Classification Models for User uploaded Models and Data'
     st.markdown(f"<h2 style='text-align: center;'><b>{title_text}</b></h2>", unsafe_allow_html=True)
     st.text("")
-    # Upload custom PyTorch model (.pth)
+    # Upload custom PyTorch model (.pt)
     selected_framework = st.radio("Select the Deep Learning framework:", ["PyTorch", "TensorFlow"])
-    selected_model = st.radio("Indicate whether using custom model or pre-trained:", ["Custom", "Pre-trained"])
-    model_file = st.file_uploader(
-        f"Upload your {selected_framework} model (e.g., .pt for PyTorch, .h5 for TensorFlow)", type=["pt", "h5"],accept_multiple_files=False)
+    selected_model = st.radio("Indicate whether using custom model, pre-trained or pre-trained + custom head:", ["Custom", "Pre-trained","Pre-trained+Custom"])
+    if selected_model in ["Pre-trained+Custom","Custom"]:
+        model_file = st.file_uploader(
+            f"Upload your {selected_framework} model (e.g., .pt for PyTorch, .h5 for TensorFlow)", type=["pt", "h5"],accept_multiple_files=False)
     if model_file:
-        with open(os.path.join(os.getcwd(), f"{model_file.name}.pt"), "wb") as f:
+        with open(os.path.join(os.getcwd(), f"{model_file.name}"), "wb") as f:
             f.write(model_file.getbuffer())
-    #st.write(model_file.read())
 
     # Upload custom model architecture (.py)
     if selected_model == "Custom":
         model_architecture_file = st.text_area("Enter your custom model class if used PyTorch to create a custom model")
         st.code(model_architecture_file, language="python")
+    if selected_model == "Pre-trained+Custom":
+        model_architecture_file = st.text_area("Instantiate pre-trained model with custom head")
+        st.code(model_architecture_file, language="python")
     if selected_model == "Pre-trained":
-        model_architecture_file = st.text_area("Enter a function that utilizes pre-trained model used")
+        model_architecture_file = st.text_area("Instantiate pre-trained model with corresponding weights.")
         st.code(model_architecture_file, language="python")
     #model_architecture_file = st.file_uploader("Upload your custom model architecture (Python file) if used PyTorch to create a custom model", type=["py"], help = "Upload the PyTorch Class that defines your custom model")
     image_size = st.text_input("Enter your desired image size (e.g., 224)", value="224")
     Mean_list = st.text_input("Enter your desired image normalization - Mean", value="0.485, 0.456, 0.406")
     Std_list = st.text_input("Enter your desired image normalization - Std", value="0.229, 0.224, 0.225")
-    preprocess_fn_code = f"torchvision.transforms.Compose([\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.ToTensor(),\ntorchvision.transforms.Normalize(\nmean=[{Mean_list}],\nstd=[{Std_list}]\n)\n])"
+    preprocess_fn_code = f"torchvision.transforms.Compose([\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.ToTensor(),\ntorchvision.transforms.Normalize(\nmean=[{Mean_list}],\nstd=[{Std_list}])])"
     #preprocess_fn_code = st.text_input("Edit image preprocessing function for your problem:",default_code)
     st.text("Applied pre-processing")
     st.code(preprocess_fn_code, language="python")
@@ -91,14 +94,9 @@ def main():
         class_name = pattern.search(clean_string)
         if class_name:
             class_name = class_name.group(1)
-    elif model_architecture_file is not None and selected_model == "Pre-trained":
-        # stringio = StringIO(model_architecture_file.getvalue().decode("utf-8"))
-        # string_data = stringio.read()
-        clean_string = re.sub(r'#.*', '', model_architecture_file)
-        clean_string = re.sub(r'(\'\'\'(.|\n)*?\'\'\'|"""(.|\n)*?""")', '', clean_string, flags=re.DOTALL)
-        # st.write(f"The uploaded Model Class is as follows:\n{clean_string}")
+    elif model_architecture_file is not None and selected_model == "Pre-trained+Custom":
         pattern = re.compile(r'def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(.*\):', re.IGNORECASE)
-        class_name = pattern.search(clean_string)
+        class_name = pattern.search(model_architecture_file)
         if class_name:
             class_name = class_name.group(1)
 
@@ -112,20 +110,14 @@ def main():
             #exec(model_architecture_code)  # Execute the code to define the model architecture
 
             # Load the PyTorch model
-            if selected_model == "Pre-trained":
-                model_func = globals()[class_name]
-                class ModelWrapper(nn.Module):
-                    def __init__(self, model_func):
-                        super(ModelWrapper, self).__init__()
-                        self.model_func = model_func
-                    def forward(self, x):
-                        return self.model_func(x)
-
-                model = ModelWrapper(model_func)
+            if selected_model == "Pre-trained+Custom":
+                model = globals()['model']
+                file = torch.load(f"{model_file.name}", map_location=torch.device(device))
+                model.load_state_dict(file)
             elif selected_model == "Custom":
                 model = globals()[class_name]
-            file = torch.load(f"{model_file.name}.pt",map_location=torch.device(device))
-            model.load_state_dict(file,strict = False)
+                file = torch.load(f"{model_file.name}.pt", map_location=torch.device(device))
+                model.load_state_dict(file)
             model.eval()
 
         elif selected_framework == "TensorFlow":
@@ -148,7 +140,7 @@ def main():
             if selected_framework == "PyTorch":
                 with torch.no_grad():
                     output = model(image_tensor)
-                return output.numpy()
+                return output
             elif selected_framework == "TensorFlow":
                 return model.predict(image_tensor)
 
@@ -157,9 +149,31 @@ def main():
 
         if st.button("Explain Results"):
             with st.spinner('Calculating...'):
+                if selected_framework == "PyTorch":
+                    def get_preprocess_transform():
+                        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                         std=[0.229, 0.224, 0.225])
+                        transf = transforms.Compose([
+                            transforms.ToTensor(),
+                            normalize
+                        ])
+                        return transf
+
+                    preprocess_transform = get_preprocess_transform()
+                    def batch_predict(images):
+                        model.eval()
+                        batch = torch.stack(tuple(preprocess_transform(i) for i in images), dim=0)
+
+                        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                        model.to(device)
+                        batch = batch.to(device)
+
+                        logits = model(batch)
+                        probs = torch.nn.functional.softmax(logits, dim=1)
+                        return probs.detach().cpu().numpy()
                 explainer = lime_image.LimeImageExplainer()
-                exp = explainer.explain_instance(input_image[0],
-                                                 pred_orig,
+                exp = explainer.explain_instance(np.array(image),
+                                                 batch_predict,
                                                  top_labels=5,
                                                  hide_color=0,
                                                  num_samples=1000)
