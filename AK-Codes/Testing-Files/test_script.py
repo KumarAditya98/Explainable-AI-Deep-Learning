@@ -427,19 +427,22 @@ if __name__ == '__main__':
     #model, criterion = model_definition(pretrained=True)
     model = models.resnet18(pretrained=True)
     model.fc = nn.Linear(model.fc.in_features, 10)
-    model.load_state_dict(torch.load('model.pt', map_location='cpu'),strict=False)
+    model.load_state_dict(torch.load('model.pt', map_location='cpu'))
     model = model.to('cpu')
     import torchvision
     transform = torchvision.transforms.Compose([
-                torchvision.transforms.Resize((224, 224)),
+                torchvision.transforms.Resize((299, 299)),
                 torchvision.transforms.ToTensor(),
                 torchvision.transforms.Normalize(
-                                        mean=[0.485, 0.456, 0.406],
-                                        std=[0.229, 0.224, 0.225])])
+                                        mean=[0.5,0.5,0.5],
+                                        std=[0.5,0.5,0.5])])
+                                        #mean=[0.485, 0.456, 0.406],
+                                        #std=[0.229, 0.224, 0.225])])
     from PIL import Image
     image = Image.open("img_9999.jpg")
     image = transform(image)
     img = image.unsqueeze(0)
+    #print(model)
     with torch.no_grad():
         output = model(img)
-    print(output)
+    print(img)

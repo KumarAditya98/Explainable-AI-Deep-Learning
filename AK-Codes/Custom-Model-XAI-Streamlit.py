@@ -21,6 +21,7 @@ from torchvision.transforms import v2
 from tqdm import tqdm
 from torchvision import models
 import torchvision
+import tensorflow as tf
 import os
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
@@ -44,111 +45,134 @@ import shap
 import numpy as np
 import base64
 from io import BytesIO
-np.random.seed(123)
 #torch.random.seed(123)
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = 'cpu'
 
 # Build app
 def main():
     st.balloons()
-    title_text = 'AI Explainability Dashboard: Image Classification Models for User uploaded Models and Data'
+    title_text = 'AI Explanability Dashboard'
     st.markdown(f"<h2 style='text-align: center;'><b>{title_text}</b></h2>", unsafe_allow_html=True)
+    st.subheader("Understand the black-box of your Image Classification Model")
     st.text("")
     # Upload custom PyTorch model (.pt)
     selected_framework = st.radio("Select the Deep Learning framework:", ["PyTorch", "TensorFlow"])
-    selected_model = st.radio("Indicate whether using custom model, pre-trained or pre-trained + custom head:", ["Custom", "Pre-trained","Pre-trained+Custom"])
-    if selected_model in ["Pre-trained+Custom","Custom"]:
+    selected_model = st.radio("Indicate whether using custom model, pre-trained or pre-trained + custom head:", ["Custom", "Pre-trained","Pre-trained + Custom"])
+    if selected_model in ["Pre-trained + Custom","Custom"]:
         model_file = st.file_uploader(
-            f"Upload your {selected_framework} model (e.g., .pt for PyTorch, .h5 for TensorFlow)", type=["pt", "h5"],accept_multiple_files=False)
-        if model_file:
-            with open(os.path.join(os.getcwd(), f"{model_file.name}"), "wb") as f:
+            f"Upload your {selected_framework} model (e.g., .pt for PyTorch, .h5 for TensorFlow)", type=["pt", "h5"],accept_multiple_files=False,
+            help="""**Please include the import statement and if necessary to make sure the model exists on our server.
+            Add custom heads to "Pre-trained + Custom" as shown below.
+            Upload Format**:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '<your_library>']) 
+            from tensorflow.keras.applications.xception import Xception
+            model = Xception(weights='imagenet')
+            (OR)
+            model = models.resnet18(pretrained=True)
+            model.fc = nn.Linear(model.fc.in_features, 10)""")
+        if model_file and selected_framework == "PyTorch":
+            with open(os.path.join(os.getcwd(), "model.pt"), "wb") as f:
+                f.write(model_file.getbuffer())
+        if model_file and selected_framework == "TensorFlow":
+            with open(os.path.join(os.getcwd(), "model.h5"), "wb") as f:
                 f.write(model_file.getbuffer())
 
     # Upload custom model architecture (.py)
     if selected_model == "Custom":
-        model_architecture_file = st.text_area("Enter your custom model class if used PyTorch to create a custom model")
-        st.code(model_architecture_file, language="python")
-    if selected_model == "Pre-trained+Custom":
-        model_architecture_file = st.text_area("Instantiate pre-trained model with custom head")
-        st.code(model_architecture_file, language="python")
+        model_architecture_code = st.text_area("Enter your custom model class if used PyTorch to create a custom model")
+        st.code(model_architecture_code, language="python")
+    if selected_model == "Pre-trained + Custom":
+        model_architecture_code = st.text_area("Instantiate pre-trained model with custom head")
+        st.code(model_architecture_code, language="python")
     if selected_model == "Pre-trained":
-        model_architecture_file = st.text_area("Instantiate pre-trained model with corresponding weights.")
-        st.code(model_architecture_file, language="python")
-    #model_architecture_file = st.file_uploader("Upload your custom model architecture (Python file) if used PyTorch to create a custom model", type=["py"], help = "Upload the PyTorch Class that defines your custom model")
-    image_size = st.text_input("Enter your desired image size (e.g., 224)", value="224")
-    Mean_list = st.text_input("Enter your desired image normalization - Mean", value="0.485, 0.456, 0.406")
-    Std_list = st.text_input("Enter your desired image normalization - Std", value="0.229, 0.224, 0.225")
-    preprocess_fn_code = f"torchvision.transforms.Compose([\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.ToTensor(),\ntorchvision.transforms.Normalize(\nmean=[{Mean_list}],\nstd=[{Std_list}])])"
-    #preprocess_fn_code = st.text_input("Edit image preprocessing function for your problem:",default_code)
-    def preprocess_image(image, preprocess_fn, PyTorch=True):
-        if PyTorch:
-            preprocess = eval(preprocess_fn)  # Evaluate the user-provided code
-            return preprocess(image).unsqueeze(0)
+        model_architecture_code = st.text_area("Instantiate pre-trained model with corresponding weights.")
+        st.code(model_architecture_code, language="python")
+
+    image_size = int(st.text_input("Enter the image size for your model (e.g., 224)", value="224"))
+    Mean_list = (st.text_input("Enter your desired image normalization - Mean", value="0.5, 0.5, 0.5"))
+    Std_list = (st.text_input("Enter your desired image normalization - Std", value="0.5, 0.5, 0.5"))
+    Mean_list = Mean_list.split(",")
+    Std_list = Std_list.split(",")
+
+    if selected_framework == "PyTorch":
+        preprocess_fn_code = f"torchvision.transforms.Compose([torchvision.transforms.ToTensor(),\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.Normalize(\nmean={[float(a) for a in Mean_list]},\nstd={[float(a) for a in Std_list]})])"
+    else:
+        preprocess_fn_code = f"resized_image = tf.image.resize(image, [{image_size}, {image_size}])\nimage_tensor = tf.cast(resized_image, dtype=tf.float32)\nimage = (image_tensor - {list(float(a) for a in Mean_list)}) / {list(float(a) for a in Std_list)}"
+    def preprocess_image(image, preprocess_fn, PyTorch=True,for_model = True):
+        if for_model:
+            if PyTorch:
+                preprocess = eval(preprocess_fn)
+                return preprocess(image).unsqueeze(0)
+            else:
+                mean = np.array([float(a) for a in Mean_list], dtype=np.float32)
+                std = np.array([float(a) for a in Std_list], dtype=np.float32)
+                image = tf.image.resize(image, [image_size, image_size])
+                img = tf.keras.preprocessing.image.img_to_array(image)
+                image = (img - mean) / std
+                # resized_image = tf.image.resize(image, [image_size, image_size])
+                # image_tensor = tf.cast(resized_image, dtype=tf.float32)
+                # image = (image_tensor - mean) / std
+                return np.expand_dims(image,axis=0)
         else:
-            import tensorflow as tf
-            img = tf.keras.preprocessing.image.img_to_array(
-                image)  # Transforming the image to get the shape as [channel, height, width]
-            img = np.expand_dims(img, axis=0)  # Adding dimension to convert array into a batch of size (1,299,299,3)
-            img = img / 255.0  # normalizing the image to keep within the range of 0.0 to 1.0
-            return img
+            if PyTorch:
+                preprocess = eval(preprocess_fn)
+                return preprocess(image)
+            else:
+                mean = tf.constant([float(a) for a in Mean_list], dtype=tf.float32)
+                std = tf.constant([float(a) for a in Std_list], dtype=tf.float32)
+                resized_image = tf.image.resize(image, [image_size, image_size])
+                image_tensor = tf.cast(resized_image, dtype=tf.float32)
+                image = (image_tensor - mean) / std
+                return image
     st.text("Applied pre-processing")
     st.code(preprocess_fn_code, language="python")
-    if model_architecture_file is not None and selected_model == "Custom":
-        #stringio = StringIO(model_architecture_file.getvalue().decode("utf-8"))
-        #string_data = stringio.read()
-        clean_string = re.sub(r'#.*', '', model_architecture_file)
+    if model_architecture_code is not None and selected_model == "Custom":
+        clean_string = re.sub(r'#.*', '', model_architecture_code)
         clean_string = re.sub(r'(\'\'\'(.|\n)*?\'\'\'|"""(.|\n)*?""")', '', clean_string, flags=re.DOTALL)
-        #st.write(f"The uploaded Model Class is as follows:\n{clean_string}")
         pattern = re.compile(r'class\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(.*\):',re.IGNORECASE)
         class_name = pattern.search(clean_string)
         if class_name:
             class_name = class_name.group(1)
-    elif model_architecture_file is not None and selected_model == "Pre-trained+Custom":
-        pattern = re.compile(r'def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(.*\):', re.IGNORECASE)
-        class_name = pattern.search(model_architecture_file)
-        if class_name:
-            class_name = class_name.group(1)
+    elif model_architecture_code is not None and selected_model in ["Pre-trained + Custom","Pre-trained"]:
+        model_name = st.text_input("The name of the model variable you've assigned (e.g model)", value='model')
 
     image_file = st.file_uploader("Upload the image you want to explain", type=["jpg", "jpeg", "png"])
 
-    if model_architecture_file and image_file:
+    if model_architecture_code and image_file:
         if selected_framework == "PyTorch":
-            # Load the custom PyTorch model architecture
-            #model_architecture_code = model_architecture_file.read().decode("utf-8")
-            exec(model_architecture_file,globals())
-            #exec(model_architecture_code)  # Execute the code to define the model architecture
+            exec(model_architecture_code, globals())
 
             # Load the PyTorch model
-            if selected_model == "Pre-trained+Custom":
-                model = globals()['model']
-                file = torch.load(f"{model_file.name}", map_location=torch.device(device))
+            if selected_model == "Pre-trained + Custom":
+                model = globals()[model_name]
+                file = torch.load("model.pt", map_location=torch.device(device))
                 model.load_state_dict(file)
             elif selected_model == "Custom":
                 model = globals()[class_name]
-                file = torch.load(f"{model_file.name}.pt", map_location=torch.device(device))
+                file = torch.load("model.pt", map_location=torch.device(device))
                 model.load_state_dict(file)
             model.eval()
 
         elif selected_framework == "TensorFlow":
-            exec(model_architecture_file, globals())
             if selected_model == "Pre-trained":
-            # Load the TensorFlow model
-                model = globals()['model']
+                exec(model_architecture_code, globals())
+                model = globals()[model_name]
+                st.write(model)
             else:
-                model = tf.keras.models.load_model(model_file)
+                model = tf.keras.models.load_model("model.h5")
 
         else:
             st.error("Invalid framework selected.")
 
         # Load and display the image
         image = Image.open(image_file)
+        image = image.resize((int(image_size), int(image_size)))
         st.image(image, caption="Uploaded Image", use_column_width=True)
-        image = image.resize((int(image_size),int(image_size)))
 
-        # Preprocess the image User - defined image preprocessing function
-        #preprocess_fn = preprocess_fn_code.replace("transforms", "transforms.Compose")
         my_bool = True if selected_framework == "PyTorch" else False
-        input_image = preprocess_image(image,preprocess_fn_code,PyTorch=my_bool)
+        input_image = preprocess_image(image,preprocess_fn_code,PyTorch=my_bool,for_model = True)
+        st.write(input_image)
 
         # Define a function for model prediction
         def predict(image_tensor):
@@ -156,33 +180,30 @@ def main():
                 with torch.no_grad():
                     output = model(image_tensor)
                 return output
-            elif selected_framework == "TensorFlow":
+            else:
                 return model.predict(image_tensor)
-
         pred_orig = predict(input_image)
         st.write("The Predicted Output from the model is as follows:",pred_orig)
 
         if st.button("Explain Results"):
             with st.spinner('Calculating...'):
                 if selected_framework == "PyTorch":
-                    def get_preprocess_transform():
-                        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                         std=[0.229, 0.224, 0.225])
-                        transf = transforms.Compose([
-                            transforms.ToTensor(),
-                            normalize
-                        ])
-                        return transf
-
-                    preprocess_transform = get_preprocess_transform()
+                    # def get_preprocess_transform():
+                    #     normalize = transforms.Normalize(mean=[float(a) for a in Mean_list],
+                    #                                      std=[float(a) for a in Std_list])
+                    #     transf = transforms.Compose([
+                    #         transforms.ToTensor(),
+                    #         transforms.Resize((image_size, image_size)),
+                    #         normalize
+                    #     ])
+                    #     return transf
+                    #
+                    # preprocess_transform = get_preprocess_transform()
                     def batch_predict(images):
                         model.eval()
-                        batch = torch.stack(tuple(preprocess_transform(i) for i in images), dim=0)
-
-                        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                        batch = torch.stack(tuple(preprocess_image(i,preprocess_fn_code,my_bool,False) for i in images), dim=0)
                         model.to(device)
                         batch = batch.to(device)
-
                         logits = model(batch)
                         probs = torch.nn.functional.softmax(logits, dim=1)
                         return probs.detach().cpu().numpy()
@@ -226,7 +247,7 @@ def main():
                     heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
                     st.image(heatmap)
 
-                explanation_heatmap(exp, exp.top_labels[0])
+                #explanation_heatmap(exp, exp.top_labels[0])
 
         # Explain with LIME
         # lime_explanation = explain_with_lime(image, predict, class_names=["Class 0", "Class 1"])

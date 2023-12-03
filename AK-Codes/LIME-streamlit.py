@@ -27,7 +27,7 @@ from skimage.segmentation import mark_boundaries
 title_text = 'AI Explainability Dashboard: Image Classification Models for User uploaded Models and Data'
 #subheader_text = '''1: Strongly Negative &nbsp 2: Weakly Negative &nbsp  3: Neutral &nbsp  4: Weakly Positive &nbsp  5: Strongly Positive'''
 
-st.rain()
+#st.rain()
 st.markdown(f"<h2 style='text-align: center;'><b>{title_text}</b></h2>", unsafe_allow_html=True)
 #st.markdown(f"<h5 style='text-align: center;'>{subheader_text}</h5>", unsafe_allow_html=True)
 st.text("")
