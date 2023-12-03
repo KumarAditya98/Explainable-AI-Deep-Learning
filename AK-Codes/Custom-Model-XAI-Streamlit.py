@@ -47,9 +47,7 @@ from io import BytesIO
 np.random.seed(123)
 #torch.random.seed(123)
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-def preprocess_image(image, preprocess_fn):
-    preprocess = eval(preprocess_fn)  # Evaluate the user-provided code
-    return preprocess(image).unsqueeze(0)
+
 # Build app
 def main():
     st.balloons()
@@ -62,9 +60,9 @@ def main():
     if selected_model in ["Pre-trained+Custom","Custom"]:
         model_file = st.file_uploader(
             f"Upload your {selected_framework} model (e.g., .pt for PyTorch, .h5 for TensorFlow)", type=["pt", "h5"],accept_multiple_files=False)
-    if model_file:
-        with open(os.path.join(os.getcwd(), f"{model_file.name}"), "wb") as f:
-            f.write(model_file.getbuffer())
+        if model_file:
+            with open(os.path.join(os.getcwd(), f"{model_file.name}"), "wb") as f:
+                f.write(model_file.getbuffer())
 
     # Upload custom model architecture (.py)
     if selected_model == "Custom":
@@ -82,6 +80,17 @@ def main():
     Std_list = st.text_input("Enter your desired image normalization - Std", value="0.229, 0.224, 0.225")
     preprocess_fn_code = f"torchvision.transforms.Compose([\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.ToTensor(),\ntorchvision.transforms.Normalize(\nmean=[{Mean_list}],\nstd=[{Std_list}])])"
     #preprocess_fn_code = st.text_input("Edit image preprocessing function for your problem:",default_code)
+    def preprocess_image(image, preprocess_fn, PyTorch=True):
+        if PyTorch:
+            preprocess = eval(preprocess_fn)  # Evaluate the user-provided code
+            return preprocess(image).unsqueeze(0)
+        else:
+            import tensorflow as tf
+            img = tf.keras.preprocessing.image.img_to_array(
+                image)  # Transforming the image to get the shape as [channel, height, width]
+            img = np.expand_dims(img, axis=0)  # Adding dimension to convert array into a batch of size (1,299,299,3)
+            img = img / 255.0  # normalizing the image to keep within the range of 0.0 to 1.0
+            return img
     st.text("Applied pre-processing")
     st.code(preprocess_fn_code, language="python")
     if model_architecture_file is not None and selected_model == "Custom":
@@ -102,7 +111,7 @@ def main():
 
     image_file = st.file_uploader("Upload the image you want to explain", type=["jpg", "jpeg", "png"])
 
-    if model_file and model_architecture_file and image_file:
+    if model_architecture_file and image_file:
         if selected_framework == "PyTorch":
             # Load the custom PyTorch model architecture
             #model_architecture_code = model_architecture_file.read().decode("utf-8")
@@ -121,8 +130,12 @@ def main():
             model.eval()
 
         elif selected_framework == "TensorFlow":
+            exec(model_architecture_file, globals())
+            if selected_model == "Pre-trained":
             # Load the TensorFlow model
-            model = tf.keras.models.load_model(model_file)
+                model = globals()['model']
+            else:
+                model = tf.keras.models.load_model(model_file)
 
         else:
             st.error("Invalid framework selected.")
@@ -130,10 +143,12 @@ def main():
         # Load and display the image
         image = Image.open(image_file)
         st.image(image, caption="Uploaded Image", use_column_width=True)
+        image = image.resize((int(image_size),int(image_size)))
 
         # Preprocess the image User - defined image preprocessing function
         #preprocess_fn = preprocess_fn_code.replace("transforms", "transforms.Compose")
-        input_image = preprocess_image(image,preprocess_fn_code)
+        my_bool = True if selected_framework == "PyTorch" else False
+        input_image = preprocess_image(image,preprocess_fn_code,PyTorch=my_bool)
 
         # Define a function for model prediction
         def predict(image_tensor):
@@ -171,12 +186,19 @@ def main():
                         logits = model(batch)
                         probs = torch.nn.functional.softmax(logits, dim=1)
                         return probs.detach().cpu().numpy()
-                explainer = lime_image.LimeImageExplainer()
-                exp = explainer.explain_instance(np.array(image),
+                    explainer = lime_image.LimeImageExplainer()
+                    exp = explainer.explain_instance(np.array(image),
                                                  batch_predict,
                                                  top_labels=5,
                                                  hide_color=0,
                                                  num_samples=1000)
+                else:
+                    explainer = lime_image.LimeImageExplainer()
+                    exp = explainer.explain_instance(np.array(input_image[0]),
+                                                     model.predict,
+                                                     top_labels=5,
+                                                     hide_color=0,
+                                                     num_samples=1000)
                 # Display explainer HTML object
                 st.image(exp.segments)
                 def generate_prediction_sample(exp, exp_class, weight=0.1, show_positive=True, hide_background=True):
