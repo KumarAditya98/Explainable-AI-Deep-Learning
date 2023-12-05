@@ -95,7 +95,7 @@ if st.session_state["phase2"] == True:
             ''')
         
         st.link_button("Go to research paper", url = "https://arxiv.org/pdf/1610.02391.pdf")
-        
+
         explainer = GradCAMPP(model = model,
                               output_layer=-1,
                               batch_size=16,
@@ -192,34 +192,22 @@ if st.session_state["phase2"] == True:
     if option_xai == 'Lime':
         st.subheader("Def.")
         st.markdown(
-            "The overall goal of LIME is to identify an interpretable model over the interpretable representation that is locally faithful to the classifier.")
-        explainer = Lime(model = model,
-                        batch_size = 16,
-                        map_to_interpret_space= None,  
-                        nb_samples= 4000,
-                        ref_value= None, 
-                        interpretable_model= linear_model.Ridge(alpha=2),
-                        similarity_kernel= None, 
-                        pertub_func= None,  
-                        distance_mode= "euclidean",  
-                        kernel_width= 45.0,  
-                        prob= 0.5)
-        
-        explanation = explainer.explain(x, y)
-
-        fig, axes = plt.subplots(figsize= (8,5))
-        plt.sca(axes)
-
-        axes.set_title("Lime")
-        axes.axis("off")
-        plot_attribution(explanation=explanation,
-                         image= x,
-                         ax = axes, 
-                         cmap='cividis',
-                         alpha=0.6)
-        
-        st.pyplot(fig)
+            "The acronym LIME stands for Local Interpretable Model-agnostic Explanations. It is one of the most popular Explainable AI (XAI) methods used for explaining the working of machine learning and deep learning models.")
+        st.link_button("Go to research paper", url="https://arxiv.org/abs/1602.04938.pdf")
+        st.markdown("""
+    The abbreviation of LIME itself gives an intuition about the core idea behind it. LIME is:
+    * Model agnostic, which means that LIME is model-independent. In other words, LIME is able to explain any black-box classifier you can think of.
+    * Interpretable, which means that LIME provides you a solution to understand why your model behaves the way it does.
+    * Local, which means that LIME tries to find the explanation of your black-box model by approximating the local linear behavior of your model.   
     
+    ### How LIME works internally:   
+    * Input Data Permutation
+    * Predict Class of each artificial Model
+    * Calculate weight of each artificial data point
+    * Fit a linear classifier to retrieve the most important features   
+    
+    ### Limitation: The primary limitation of LIME is that currently it supports analysis only for a single image at a time, and not considering the whole dataset.""")
+
     if option_xai == 'Shap':
         st.subheader("Def.")
         st.markdown(
