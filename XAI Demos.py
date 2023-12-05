@@ -212,7 +212,9 @@ if st.session_state["phase2"] == True:
         st.pyplot(fig)
     
     if option_xai == 'Shap':
-        
+        st.subheader("Def.")
+        st.markdown(
+            "The exact computation of SHAP values is challenging. However, by combining insights from current additive feature attribution methods, we can approximate them. We describe two model-agnostic approximation methods, [...] and another that is novel (Kernel SHAP)")
         explainer = KernelShap(model = model,
                                batch_size = 16,
                                map_to_interpret_space= None, 
