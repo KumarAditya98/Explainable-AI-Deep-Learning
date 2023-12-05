@@ -9,7 +9,7 @@ from sklearn import linear_model
 from io import BytesIO
 from PIL import Image
 import os
-from xplique.attributions import GradCAM, GradCAMPP, Occlusion, Rise, DeconvNet, Lime, KernelShap
+from xplique.attributions import GradCAM, GradCAMPP, Occlusion, Rise, IntegratedGradients, Lime, KernelShap
 from images import plot_attribution
 import streamlit as st
 
@@ -76,7 +76,7 @@ if st.session_state["phase2"] == True:
     
     option_xai = st.selectbox(
     "Choose pretrained model:",
-    ('Select XAI model', 'GradCAM', 'Occlusion Sensitivity', 'Rise', 'Deconvnet', 'Lime', 'Shap'))
+    ('Select XAI model', 'GradCAM', 'Occlusion Sensitivity', 'Rise', 'Integrated Gradients', 'Lime', 'Shap'))
     
     if option_xai == 'Select XAI model':
         st.stop()
@@ -142,24 +142,16 @@ if st.session_state["phase2"] == True:
     if option_xai == 'Rise':
         
         # Let user pick Rise param
-
-        st.subheader("Defenition")
-        st.markdown("Deconvnet is one of the first attribution method and was proposed in 2013. Its operation is similar to Saliency: it consists in backpropagating the output score with respect to the input, however, at each non-linearity (the ReLUs), only the positive gradient (even of negative activations) are backpropagated.")
-        st.markdown("More precisely:")
-        st.latex(r'''
-                 \frac{\partial f(x)}{\partial f_{l}(x)} =  \frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))} \frac{\partial \text{ReLU}(f_l(x))}{\partial f_{l}(x)}
-= \frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))} \odot \mathbb{1}(f_{l}(x))
-                 ''')
-        st.markdown("With the he indicator function. With Deconvnet, the backpropagation is modified such that :")
-        st.latex(r'''
-                       \frac{\partial f(x)}{\partial f_{l}(x)} =
-\frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))} \odot \mathbb{1}(\frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))})
-                         ''')
-        
+        st.markdown("Randomized Input Sampling for Explanation of Black-box Models")
+        st.markdown("The Rise method is a perturbation-based method for computer vision, it generates binary masks and study the behavior of the model on masked images. The pixel influence score is the mean of all the obtained scores when the pixel was not masked.")
+        st.image("download.png")
+        nb_samples = st.number_input('Enter the sample number of masks:', step=1000)
+        grid_size = st.number_input('Enter the grid size:', step=1)
+        preservation_probability = st.number_input('Enter the probability of pixels to be preserved: ', step=0.1)
         explainer = Rise(model,
-                         nb_samples=20000, 
-                         grid_size=13,
-                         preservation_probability=0.5)
+                         nb_samples=nb_samples,
+                         grid_size=grid_size,
+                         preservation_probability=preservation_probability)
 
         explanation = explainer.explain(x, y)
 
@@ -175,33 +167,22 @@ if st.session_state["phase2"] == True:
                          alpha=0.6)
         st.pyplot(fig)
     
-    if option_xai == 'Deconvnet':
-
-        st.subheader("Defenition")
-        st.markdown(
-            "The RISE method consist of probing the model with randomly masked versions of the input image and obtaining the corresponding outputs to deduce critical areas.")
-        st.markdown("The RISE importance estimator is defined as:")
-        st.latex(r'''
-                         \phi_i = \mathbb{E}( f(x \odot m) | m_i = 1) 
-        \approx \frac{1}{\mathbb{E}(\mathcal{M}) N} \sum_{i=1}^N f(x \odot m_i) m_i
-                         ''')
-        
-        explainer = DeconvNet(model = model,
-                              output_layer=None,
-                              batch_size=16)
+    if option_xai == 'Integrated Gradients':
+        st.markdown("Integrated Gradients is a visualization technique resulting of a theoretical search for an explanatory method that satisfies two axioms, Sensitivity and Implementation Invariance (Sundararajan et al.)")
+        baseline_value = st.number_input('Enter the sample number of masks:', step=0.01)
+        steps = st.number_input('Enter the sample number of masks:', step=10)
+        explainer = IntegratedGradients(model,
+                                        output_layer=-1, batch_size=16,
+                                        steps=50, baseline_value=0)
 
         explanation = explainer.explain(x, y)
 
         fig, axes = plt.subplots(figsize= (8,5))
         plt.sca(axes)
 
-        axes.set_title("Deconvnet")
+        axes.set_title("Integrated Gradients")
         axes.axis("off")
-        plot_attribution(explanation=explanation,
-                         image= x,
-                         ax = axes, 
-                         cmap='cividis',
-                         alpha=0.6)
+        plot_attribution(explanation, x, img_size=axes, cmap='cividis', alpha=0.6)
         st.pyplot(fig)
     
     if option_xai == 'Lime':
