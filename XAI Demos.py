@@ -205,7 +205,9 @@ if st.session_state["phase2"] == True:
         st.pyplot(fig)
     
     if option_xai == 'Lime':
-        
+        st.subheader("Def.")
+        st.markdown(
+            "The overall goal of LIME is to identify an interpretable model over the interpretable representation that is locally faithful to the classifier.")
         explainer = Lime(model = model,
                         batch_size = 16,
                         map_to_interpret_space= None,  
