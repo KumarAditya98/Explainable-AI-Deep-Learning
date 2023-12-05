@@ -30,21 +30,24 @@ def load_image_data_from_url(url):
     display(Image(image_path))
     return image_path
 
-image_path = load_image_data_from_url(url = "https://images.unsplash.com/photo-1560275619-4662e36fa65c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80")
+#image_path = load_image_data_from_url(url = "https://images.unsplash.com/photo-1560275619-4662e36fa65c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80")
 
 IMG_SIZE = (299, 299)
 def transform_image(image_path, size):
     '''
     Function to transform an image to normalized numpy array
     '''
-    img = image.load_img(image_path, target_size=size)
-    img = image.img_to_array(img)  # Transforming the image to get the shape as [channel, height, width]
+    #img = image.load_img(image_path, target_size=size)
+    img = tf.keras.preprocessing.image.img_to_array(image_path)  # Transforming the image to get the shape as [channel, height, width]
     img = np.expand_dims(img, axis=0)  # Adding dimension to convert array into a batch of size (1,299,299,3)
     img = img / 255.0  # normalizing the image to keep within the range of 0.0 to 1.0
 
     return img
-normalized_img = transform_image(image_path, IMG_SIZE)
 
+import PIL
+image_path = PIL.Image.open('Testing-Files/photo-1560275619-4662e36fa65c.jpg')
+image_path = image_path.resize((299,299))
+normalized_img = transform_image(image_path, IMG_SIZE)
 from tensorflow.keras.applications.xception import Xception
 model = Xception(weights="imagenet")
 

@@ -46,8 +46,8 @@ import numpy as np
 import base64
 from io import BytesIO
 #torch.random.seed(123)
-#device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-device = 'cpu'
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
 def predict(image_tensor,selected_framework,model):
     if selected_framework == "PyTorch":
         with torch.no_grad():
@@ -55,29 +55,24 @@ def predict(image_tensor,selected_framework,model):
         return output
     else:
         return model.predict(image_tensor)
-
-def preprocess_image(image, preprocess_fn, Mean_list, Std_list, image_size, PyTorch=True,for_model = True):
+def preprocess_image(image, preprocess_fn, image_size, PyTorch=True,for_model = True):
     if for_model:
         if PyTorch:
             preprocess = eval(preprocess_fn)
             return preprocess(image).unsqueeze(0)
         else:
-            mean = np.array([float(a) for a in Mean_list], dtype=np.float32)
-            std = np.array([float(a) for a in Std_list], dtype=np.float32)
             image = tf.image.resize(image, [image_size, image_size])
             img = tf.keras.preprocessing.image.img_to_array(image)
-            image = (img - mean) / std
+            image = img / 255.0
             return np.expand_dims(image,axis=0)
     else:
             if PyTorch:
                 preprocess = eval(preprocess_fn)
                 return preprocess(image)
             else:
-                mean = tf.constant([float(a) for a in Mean_list], dtype=tf.float32)
-                std = tf.constant([float(a) for a in Std_list], dtype=tf.float32)
                 resized_image = tf.image.resize(image, [image_size, image_size])
                 image_tensor = tf.cast(resized_image, dtype=tf.float32)
-                image = (image_tensor - mean) / std
+                image = image_tensor / 255.0
                 return image
 
 # Build app
@@ -103,44 +98,46 @@ def main():
             model = models.resnet18(pretrained=True)
             model.fc = nn.Linear(model.fc.in_features, 10)""")
         if model_file and selected_framework == "PyTorch":
+            if os.path.exists('model.pt'):
+                os.remove('model.pt')
             with open(os.path.join(os.getcwd(), "model.pt"), "wb") as f:
                 f.write(model_file.getbuffer())
         if model_file and selected_framework == "TensorFlow":
+            if os.path.exists('model.h5'):
+                os.remove('model.h5')
             with open(os.path.join(os.getcwd(), "model.h5"), "wb") as f:
                 f.write(model_file.getbuffer())
 
     # Upload custom model architecture (.py)
-    if selected_model == "Custom":
+    if selected_model == "Custom" and selected_framework == "PyTorch":
         model_architecture_code = st.text_area("Enter your custom model class if used PyTorch to create a custom model")
         st.code(model_architecture_code, language="python")
-    if selected_model == "Pre-trained + Custom":
-        model_architecture_code = st.text_area("Instantiate pre-trained model with custom head")
+    elif selected_model == "Pre-trained + Custom" and selected_framework == "PyTorch":
+        model_architecture_code = st.text_area("Instantiate pre-trained model with custom head. Note: write full library. TensorFlow as tf and torch as torch.")
         st.code(model_architecture_code, language="python")
-    if selected_model == "Pre-trained":
-        model_architecture_code = st.text_area("Instantiate pre-trained model with corresponding weights.")
+    elif selected_model == "Pre-trained" and selected_framework in ['TensorFlow','PyTorch']:
+        model_architecture_code = st.text_area("Instantiate pre-trained model with corresponding weights. Note: write full library. TensorFlow as tf and torch as torch.")
         st.code(model_architecture_code, language="python")
+    else:
+        model_architecture_code = True
 
-    image_size = int(st.text_input("Enter the image size for your model (e.g., 224)", value="224"))
+    image_size = int(st.text_input("Enter the image size for your model (Note: For pre-trained models, it must match with image size that was used to train the model)", value="224"))
     Mean_list = (st.text_input("Enter your desired image normalization - Mean", value="0.5, 0.5, 0.5"))
-    Std_list = (st.text_input("Enter your desired image normalization - Std", value="0.5, 0.5, 0.5"))
+    Std_list = (st.text_input("Enter your desired image normalization - Standard Deviation", value="0.5, 0.5, 0.5"))
     Mean_list = Mean_list.split(",")
     Std_list = Std_list.split(",")
 
-    if selected_framework == "PyTorch":
-        preprocess_fn_code = f"torchvision.transforms.Compose([torchvision.transforms.ToTensor(),\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.Normalize(\nmean={[float(a) for a in Mean_list]},\nstd={[float(a) for a in Std_list]})])"
-    else:
-        preprocess_fn_code = f"resized_image = tf.image.resize(image, [{image_size}, {image_size}])\nimage_tensor = tf.cast(resized_image, dtype=tf.float32)\nimage = (image_tensor - {list(float(a) for a in Mean_list)}) / {list(float(a) for a in Std_list)}"
-
+    preprocess_fn_code = f"torchvision.transforms.Compose([torchvision.transforms.ToTensor(),\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.Normalize(\nmean={[float(a) for a in Mean_list]},\nstd={[float(a) for a in Std_list]})])"
     st.text("Applied pre-processing")
     st.code(preprocess_fn_code, language="python")
-    if model_architecture_code is not None and selected_model == "Custom":
+    if model_architecture_code is not None and selected_model == "Custom" and selected_framework == 'PyTorch':
         clean_string = re.sub(r'#.*', '', model_architecture_code)
         clean_string = re.sub(r'(\'\'\'(.|\n)*?\'\'\'|"""(.|\n)*?""")', '', clean_string, flags=re.DOTALL)
         pattern = re.compile(r'class\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(.*\):',re.IGNORECASE)
         class_name = pattern.search(clean_string)
         if class_name:
             class_name = class_name.group(1)
-    elif model_architecture_code is not None and selected_model in ["Pre-trained + Custom","Pre-trained"]:
+    elif model_architecture_code is not None and selected_model in ["Pre-trained + Custom", 'Pre-trained'] and selected_framework=="PyTorch":
         model_name = st.text_input("The name of the model variable you've assigned (e.g model)", value='model')
 
     image_file = st.file_uploader("Upload the image you want to explain", type=["jpg", "jpeg", "png"])
@@ -148,24 +145,24 @@ def main():
     if model_architecture_code and image_file:
         if selected_framework == "PyTorch":
             exec(model_architecture_code, globals())
-
             # Load the PyTorch model
             if selected_model == "Pre-trained + Custom":
+                # exec(model_architecture_code, globals())
                 model = globals()[model_name]
                 file = torch.load("model.pt", map_location=torch.device(device))
                 model.load_state_dict(file)
-                st.write(model.fc.weight)
             elif selected_model == "Custom":
-                model = globals()[class_name]
+                # exec(model_architecture_code, globals())
+                model = globals()[model_name]
                 file = torch.load("model.pt", map_location=torch.device(device))
                 model.load_state_dict(file)
+            else:
+                model = globals()[model_name]
             model.eval()
 
         elif selected_framework == "TensorFlow":
             if selected_model == "Pre-trained":
-                exec(model_architecture_code, globals())
-                model = globals()['model']
-                st.write(model.summary())
+                model = globals()[model_name]
             else:
                 model = tf.keras.models.load_model("model.h5")
 
@@ -178,29 +175,19 @@ def main():
         st.image(image, caption="Uploaded Image", use_column_width=True)
 
         my_bool = True if selected_framework == "PyTorch" else False
-        input_image = preprocess_image(image,preprocess_fn_code,Mean_list,Std_list,image_size,PyTorch=my_bool,for_model = True)
+        input_image = preprocess_image(image,preprocess_fn_code,image_size,PyTorch=my_bool,for_model = True)
 
         # Define a function for model prediction
         pred_orig = predict(input_image,selected_framework,model)
-        st.write("The Predicted Output from the model is as follows:",pred_orig)
+        st.write("The Predicted Output from the model is as follows:", pred_orig)
+
 
         if st.button("Explain Results"):
             with st.spinner('Calculating...'):
                 if selected_framework == "PyTorch":
-                    # def get_preprocess_transform():
-                    #     normalize = transforms.Normalize(mean=[float(a) for a in Mean_list],
-                    #                                      std=[float(a) for a in Std_list])
-                    #     transf = transforms.Compose([
-                    #         transforms.ToTensor(),
-                    #         transforms.Resize((image_size, image_size)),
-                    #         normalize
-                    #     ])
-                    #     return transf
-                    #
-                    # preprocess_transform = get_preprocess_transform()
                     def batch_predict(images):
                         model.eval()
-                        batch = torch.stack(tuple(preprocess_image(i,preprocess_fn_code,my_bool,False) for i in images), dim=0)
+                        batch = torch.stack(tuple(preprocess_image(i,preprocess_fn_code,image_size=image_size,PyTorch = my_bool,for_model=False) for i in images), dim=0)
                         model.to(device)
                         batch = batch.to(device)
                         logits = model(batch)
@@ -214,37 +201,55 @@ def main():
                                                  num_samples=1000)
                 else:
                     explainer = lime_image.LimeImageExplainer()
-                    exp = explainer.explain_instance(np.array(input_image[0]),
+                    exp = explainer.explain_instance(np.array(input_image[0].astype('double')),
                                                      model.predict,
                                                      top_labels=5,
                                                      hide_color=0,
                                                      num_samples=1000)
+                temp_1, mask_1 = exp.get_image_and_mask(exp.top_labels[0], positive_only=True,
+                                                                    num_features=5, hide_rest=True)
+                temp_2, mask_2 = exp.get_image_and_mask(exp.top_labels[0], positive_only=False,
+                                                                    num_features=5, hide_rest=False)
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 15))
+                ax1.imshow(mark_boundaries(temp_1, mask_1))
+                ax2.imshow(mark_boundaries(temp_2, mask_2))
+                ax1.axis('off')
+                ax2.axis('off')
+                plt.savefig('mask.png')
+                Lime_img1 = Image.open('mask.png')
+                st.image(Lime_img1)
+                dict_heatmap = dict(exp.local_exp[exp.top_labels[0]])
+                heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
+                plt.imshow(heatmap, cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
+                plt.colorbar()
+                plt.savefig('heatmap.png')
+                Lime_img2 = Image.open('heatmap.png')
+                st.image(Lime_img2)
                 # Display explainer HTML object
-                st.image(exp.segments)
-                def generate_prediction_sample(exp, exp_class, weight=0.1, show_positive=True, hide_background=True):
-                    '''
-                    Method to display and highlight super-pixels used by the black-box model to make predictions
-                    '''
-                    image, mask = exp.get_image_and_mask(exp_class,
-                                                         positive_only=show_positive,
-                                                         num_features=6,
-                                                         hide_rest=hide_background,
-                                                         min_weight=weight
-                                                         )
-                    st.image(mark_boundaries(image, mask))
-
-                generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=True)
-
-                generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=False)
-                generate_prediction_sample(exp, exp.top_labels[0], show_positive=False, hide_background=False)
-
-                def explanation_heatmap(exp, exp_class):
-                    '''
-                    Using heat-map to highlight the importance of each super-pixel for the model prediction
-                    '''
-                    dict_heatmap = dict(exp.local_exp[exp_class])
-                    heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
-                    st.image(heatmap)
+                # def generate_prediction_sample(exp, exp_class, weight=0.1, show_positive=True, hide_background=True):
+                #     '''
+                #     Method to display and highlight super-pixels used by the black-box model to make predictions
+                #     '''
+                #     image, mask = exp.get_image_and_mask(exp_class,
+                #                                          positive_only=show_positive,
+                #                                          num_features=6,
+                #                                          hide_rest=hide_background,
+                #                                          min_weight=weight
+                #                                          )
+                #     st.image(mark_boundaries(image, mask))
+                #
+                # generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=True)
+                #
+                # generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=False)
+                # generate_prediction_sample(exp, exp.top_labels[0], show_positive=False, hide_background=False)
+                #
+                # def explanation_heatmap(exp, exp_class):
+                #     '''
+                #     Using heat-map to highlight the importance of each super-pixel for the model prediction
+                #     '''
+                #     dict_heatmap = dict(exp.local_exp[exp_class])
+                #     heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
+                #     st.image(heatmap)
 
                 #explanation_heatmap(exp, exp.top_labels[0])
 

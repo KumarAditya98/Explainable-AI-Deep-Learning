@@ -439,10 +439,10 @@ if __name__ == '__main__':
                                         #mean=[0.485, 0.456, 0.406],
                                         #std=[0.229, 0.224, 0.225])])
     from PIL import Image
-    image = Image.open("img_9999.jpg")
+    image = Image.open("Testing-Files/img_9999.jpg")
     image = transform(image)
     img = image.unsqueeze(0)
     #print(model)
     with torch.no_grad():
         output = model(img)
-    print(img)
+    print(output)
