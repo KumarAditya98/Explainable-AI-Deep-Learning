@@ -48,13 +48,44 @@ from io import BytesIO
 #torch.random.seed(123)
 #device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 device = 'cpu'
+def predict(image_tensor,selected_framework,model):
+    if selected_framework == "PyTorch":
+        with torch.no_grad():
+            output = model(image_tensor)
+        return output
+    else:
+        return model.predict(image_tensor)
+
+def preprocess_image(image, preprocess_fn, Mean_list, Std_list, image_size, PyTorch=True,for_model = True):
+    if for_model:
+        if PyTorch:
+            preprocess = eval(preprocess_fn)
+            return preprocess(image).unsqueeze(0)
+        else:
+            mean = np.array([float(a) for a in Mean_list], dtype=np.float32)
+            std = np.array([float(a) for a in Std_list], dtype=np.float32)
+            image = tf.image.resize(image, [image_size, image_size])
+            img = tf.keras.preprocessing.image.img_to_array(image)
+            image = (img - mean) / std
+            return np.expand_dims(image,axis=0)
+    else:
+            if PyTorch:
+                preprocess = eval(preprocess_fn)
+                return preprocess(image)
+            else:
+                mean = tf.constant([float(a) for a in Mean_list], dtype=tf.float32)
+                std = tf.constant([float(a) for a in Std_list], dtype=tf.float32)
+                resized_image = tf.image.resize(image, [image_size, image_size])
+                image_tensor = tf.cast(resized_image, dtype=tf.float32)
+                image = (image_tensor - mean) / std
+                return image
 
 # Build app
 def main():
     st.balloons()
     title_text = 'AI Explanability Dashboard'
     st.markdown(f"<h2 style='text-align: center;'><b>{title_text}</b></h2>", unsafe_allow_html=True)
-    st.subheader("Understand the black-box of your Image Classification Model")
+    st.subheader("Understand the black-box that is your Image Classification Model")
     st.text("")
     # Upload custom PyTorch model (.pt)
     selected_framework = st.radio("Select the Deep Learning framework:", ["PyTorch", "TensorFlow"])
@@ -99,32 +130,7 @@ def main():
         preprocess_fn_code = f"torchvision.transforms.Compose([torchvision.transforms.ToTensor(),\ntorchvision.transforms.Resize(({image_size}, {image_size})),\ntorchvision.transforms.Normalize(\nmean={[float(a) for a in Mean_list]},\nstd={[float(a) for a in Std_list]})])"
     else:
         preprocess_fn_code = f"resized_image = tf.image.resize(image, [{image_size}, {image_size}])\nimage_tensor = tf.cast(resized_image, dtype=tf.float32)\nimage = (image_tensor - {list(float(a) for a in Mean_list)}) / {list(float(a) for a in Std_list)}"
-    def preprocess_image(image, preprocess_fn, PyTorch=True,for_model = True):
-        if for_model:
-            if PyTorch:
-                preprocess = eval(preprocess_fn)
-                return preprocess(image).unsqueeze(0)
-            else:
-                mean = np.array([float(a) for a in Mean_list], dtype=np.float32)
-                std = np.array([float(a) for a in Std_list], dtype=np.float32)
-                image = tf.image.resize(image, [image_size, image_size])
-                img = tf.keras.preprocessing.image.img_to_array(image)
-                image = (img - mean) / std
-                # resized_image = tf.image.resize(image, [image_size, image_size])
-                # image_tensor = tf.cast(resized_image, dtype=tf.float32)
-                # image = (image_tensor - mean) / std
-                return np.expand_dims(image,axis=0)
-        else:
-            if PyTorch:
-                preprocess = eval(preprocess_fn)
-                return preprocess(image)
-            else:
-                mean = tf.constant([float(a) for a in Mean_list], dtype=tf.float32)
-                std = tf.constant([float(a) for a in Std_list], dtype=tf.float32)
-                resized_image = tf.image.resize(image, [image_size, image_size])
-                image_tensor = tf.cast(resized_image, dtype=tf.float32)
-                image = (image_tensor - mean) / std
-                return image
+
     st.text("Applied pre-processing")
     st.code(preprocess_fn_code, language="python")
     if model_architecture_code is not None and selected_model == "Custom":
@@ -148,6 +154,7 @@ def main():
                 model = globals()[model_name]
                 file = torch.load("model.pt", map_location=torch.device(device))
                 model.load_state_dict(file)
+                st.write(model.fc.weight)
             elif selected_model == "Custom":
                 model = globals()[class_name]
                 file = torch.load("model.pt", map_location=torch.device(device))
@@ -157,8 +164,8 @@ def main():
         elif selected_framework == "TensorFlow":
             if selected_model == "Pre-trained":
                 exec(model_architecture_code, globals())
-                model = globals()[model_name]
-                st.write(model)
+                model = globals()['model']
+                st.write(model.summary())
             else:
                 model = tf.keras.models.load_model("model.h5")
 
@@ -171,18 +178,10 @@ def main():
         st.image(image, caption="Uploaded Image", use_column_width=True)
 
         my_bool = True if selected_framework == "PyTorch" else False
-        input_image = preprocess_image(image,preprocess_fn_code,PyTorch=my_bool,for_model = True)
-        st.write(input_image)
+        input_image = preprocess_image(image,preprocess_fn_code,Mean_list,Std_list,image_size,PyTorch=my_bool,for_model = True)
 
         # Define a function for model prediction
-        def predict(image_tensor):
-            if selected_framework == "PyTorch":
-                with torch.no_grad():
-                    output = model(image_tensor)
-                return output
-            else:
-                return model.predict(image_tensor)
-        pred_orig = predict(input_image)
+        pred_orig = predict(input_image,selected_framework,model)
         st.write("The Predicted Output from the model is as follows:",pred_orig)
 
         if st.button("Explain Results"):
