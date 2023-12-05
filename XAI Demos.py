@@ -142,6 +142,19 @@ if st.session_state["phase2"] == True:
     if option_xai == 'Rise':
         
         # Let user pick Rise param
+
+        st.subheader("Defenition")
+        st.markdown("Deconvnet is one of the first attribution method and was proposed in 2013. Its operation is similar to Saliency: it consists in backpropagating the output score with respect to the input, however, at each non-linearity (the ReLUs), only the positive gradient (even of negative activations) are backpropagated.")
+        st.markdown("More precisely:")
+        st.latex(r'''
+                 \frac{\partial f(x)}{\partial f_{l}(x)} =  \frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))} \frac{\partial \text{ReLU}(f_l(x))}{\partial f_{l}(x)}
+= \frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))} \odot \mathbb{1}(f_{l}(x))
+                 ''')
+        st.markdown("With the he indicator function. With Deconvnet, the backpropagation is modified such that :")
+        st.latex(r'''
+                       \frac{\partial f(x)}{\partial f_{l}(x)} =
+\frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))} \odot \mathbb{1}(\frac{\partial f(x)}{\partial \text{ReLU}(f_{l}(x))})
+                         ''')
         
         explainer = Rise(model,
                          nb_samples=20000, 
@@ -163,6 +176,15 @@ if st.session_state["phase2"] == True:
         st.pyplot(fig)
     
     if option_xai == 'Deconvnet':
+
+        st.subheader("Defenition")
+        st.markdown(
+            "The RISE method consist of probing the model with randomly masked versions of the input image and obtaining the corresponding outputs to deduce critical areas.")
+        st.markdown("The RISE importance estimator is defined as:")
+        st.latex(r'''
+                         \phi_i = \mathbb{E}( f(x \odot m) | m_i = 1) 
+        \approx \frac{1}{\mathbb{E}(\mathcal{M}) N} \sum_{i=1}^N f(x \odot m_i) m_i
+                         ''')
         
         explainer = DeconvNet(model = model,
                               output_layer=None,
