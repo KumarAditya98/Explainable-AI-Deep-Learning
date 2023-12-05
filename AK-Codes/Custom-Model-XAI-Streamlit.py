@@ -137,7 +137,7 @@ def main():
         class_name = pattern.search(clean_string)
         if class_name:
             class_name = class_name.group(1)
-    elif model_architecture_code is not None and selected_model in ["Pre-trained + Custom", 'Pre-trained'] and selected_framework=="PyTorch":
+    elif model_architecture_code is not None and selected_model in ["Pre-trained + Custom", 'Pre-trained']:
         model_name = st.text_input("The name of the model variable you've assigned (e.g model)", value='model')
 
     image_file = st.file_uploader("Upload the image you want to explain", type=["jpg", "jpeg", "png"])
@@ -161,6 +161,7 @@ def main():
             model.eval()
 
         elif selected_framework == "TensorFlow":
+            exec(model_architecture_code, globals())
             if selected_model == "Pre-trained":
                 model = globals()[model_name]
             else:
@@ -179,7 +180,7 @@ def main():
 
         # Define a function for model prediction
         pred_orig = predict(input_image,selected_framework,model)
-        st.write("The Predicted Output from the model is as follows:", pred_orig)
+        st.write("The Predicted Output from the model is as follows:", np.array(pred_orig))
 
 
         if st.button("Explain Results"):
@@ -218,6 +219,7 @@ def main():
                 plt.savefig('mask.png')
                 Lime_img1 = Image.open('mask.png')
                 st.image(Lime_img1)
+                st.write("Image on the left denotes the super-pixels or region-of-interest based on LIME analysis. Classification is done due to the highlighted super-pixels. Image on the right imposes this region-of-interest on original image giving a more intuitive understanding.")
                 dict_heatmap = dict(exp.local_exp[exp.top_labels[0]])
                 heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
                 plt.imshow(heatmap, cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
@@ -225,44 +227,7 @@ def main():
                 plt.savefig('heatmap.png')
                 Lime_img2 = Image.open('heatmap.png')
                 st.image(Lime_img2)
-                # Display explainer HTML object
-                # def generate_prediction_sample(exp, exp_class, weight=0.1, show_positive=True, hide_background=True):
-                #     '''
-                #     Method to display and highlight super-pixels used by the black-box model to make predictions
-                #     '''
-                #     image, mask = exp.get_image_and_mask(exp_class,
-                #                                          positive_only=show_positive,
-                #                                          num_features=6,
-                #                                          hide_rest=hide_background,
-                #                                          min_weight=weight
-                #                                          )
-                #     st.image(mark_boundaries(image, mask))
-                #
-                # generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=True)
-                #
-                # generate_prediction_sample(exp, exp.top_labels[0], show_positive=True, hide_background=False)
-                # generate_prediction_sample(exp, exp.top_labels[0], show_positive=False, hide_background=False)
-                #
-                # def explanation_heatmap(exp, exp_class):
-                #     '''
-                #     Using heat-map to highlight the importance of each super-pixel for the model prediction
-                #     '''
-                #     dict_heatmap = dict(exp.local_exp[exp_class])
-                #     heatmap = np.vectorize(dict_heatmap.get)(exp.segments)
-                #     st.image(heatmap)
-
-                #explanation_heatmap(exp, exp.top_labels[0])
-
-        # Explain with LIME
-        # lime_explanation = explain_with_lime(image, predict, class_names=["Class 0", "Class 1"])
-        # st.subheader("LIME Explanation")
-        # st.image(lime_explanation.image, caption="LIME Explanation", use_column_width=True)
-        #
-        # # Explain with SHAP
-        # shap_values = explain_with_shap(image, predict)
-        # st.subheader("SHAP Explanation")
-        # shap.image_plot(shap_values, -input_image.numpy(), show=False)
-        # st.pyplot()
+                st.write("This section shows a heat-map that displays how important each super-pixel is to get some more granular explaianbility. The legend includes what color-coded regions of interest move the decision of the model. Blue indicates the regions that influences the decision of the model in the predicted class and red indicates the regions that influence the decision to other classes.")
 
 if __name__ == "__main__":
     main()
