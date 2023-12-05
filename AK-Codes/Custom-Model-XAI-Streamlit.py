@@ -144,7 +144,8 @@ def main():
 
     if model_architecture_code and image_file:
         if selected_framework == "PyTorch":
-            exec(model_architecture_code, globals())
+            if not isinstance(model_architecture_code, (bool)):
+                exec(model_architecture_code, globals())
             # Load the PyTorch model
             if selected_model == "Pre-trained + Custom":
                 # exec(model_architecture_code, globals())
@@ -161,7 +162,8 @@ def main():
             model.eval()
 
         elif selected_framework == "TensorFlow":
-            exec(model_architecture_code, globals())
+            if not isinstance(model_architecture_code, (bool)):
+                exec(model_architecture_code, globals())
             if selected_model == "Pre-trained":
                 model = globals()[model_name]
             else:
