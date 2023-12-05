@@ -1,9 +1,11 @@
+
 import streamlit as st
 
 st.title("EXPLAINABLE AI WITH OBJECT DETECTION: A DEMO")
 st.header("CLASS ACTIVATION MAPS FOR OBJECT DETECTION")
 
-
+from PIL import Image
+from io import BytesIO
 import warnings
 warnings.filterwarnings('ignore')
 warnings.simplefilter('ignore')
@@ -67,9 +69,158 @@ coco_names = ['__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airpl
 # This will help us create a different color for each class
 COLORS = np.random.uniform(0, 255, size=(len(coco_names), 3))
 
-import requests
-import torchvision
-from PIL import Image
+image = st.file_uploader("Choose an image for Object Identification:")
+if image is None:
+    st.stop()
+image = image.read()
+image = Image.open(BytesIO(image))
+image.save("downloaded_image.jpg")
+st.image(image)
 
-url = st.text_input('Enter the URL')
+image = np.array(image)
+image_float_np = np.float32(image) / 255
+# define the torchvision image transforms
+transform = torchvision.transforms.Compose([
+    torchvision.transforms.ToTensor(),
+])
 
+input_tensor = transform(image)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+input_tensor = input_tensor.to(device)
+# Add a batch dimension:
+input_tensor = input_tensor.unsqueeze(0)
+
+model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+model.eval().to(device)
+
+# Run the model and display the detections
+boxes, classes, labels, indices = predict(input_tensor, model, device, 0.9)
+image = draw_boxes(boxes, labels, classes, image)
+
+st.write("IMAGE AFTER OBJECT DETECTION:")
+
+# Show the image:
+a = image
+plt.imshow(a, interpolation='nearest')
+plt.show()
+
+fig, ax = plt.subplots()
+ax.imshow(a, interpolation='nearest')
+
+# Display the plot in Streamlit
+st.pyplot(fig)
+
+target_layers = [model.backbone]
+targets = [FasterRCNNBoxScoreTarget(labels=labels, bounding_boxes=boxes)]
+cam = EigenCAM(model,
+               target_layers,
+               use_cuda=torch.cuda.is_available(),
+               reshape_transform=fasterrcnn_reshape_transform)
+
+grayscale_cam = cam(input_tensor, targets=targets)
+# Take the first image in the batch:
+grayscale_cam = grayscale_cam[0, :]
+cam_image = show_cam_on_image(image_float_np, grayscale_cam, use_rgb=True)
+# And lets draw the boxes again:
+image_with_bounding_boxes = draw_boxes(boxes, labels, classes, cam_image)
+a = image_with_bounding_boxes
+plt.imshow(a, interpolation='nearest')
+plt.show()
+
+st.write("IMAGE AFTER OBJECT DETECTION WITH EigenCAM:")
+st.write("EigenCAM: this method is extremely fast, but doesn't have good enough class discribination (that's less of an issue for object detection, though).")
+fig, ax = plt.subplots()
+ax.imshow(a, interpolation='nearest')
+
+# Display the plot in Streamlit
+st.pyplot(fig)
+def renormalize_cam_in_bounding_boxes(boxes, image_float_np, grayscale_cam):
+
+    renormalized_cam = np.zeros(grayscale_cam.shape, dtype=np.float32)
+    images = []
+    for x1, y1, x2, y2 in boxes:
+        img = renormalized_cam * 0
+        img[y1:y2, x1:x2] = scale_cam_image(grayscale_cam[y1:y2, x1:x2].copy())
+        images.append(img)
+
+    renormalized_cam = np.max(np.float32(images), axis = 0)
+    renormalized_cam = scale_cam_image(renormalized_cam)
+    eigencam_image_renormalized = show_cam_on_image(image_float_np, renormalized_cam, use_rgb=True)
+    image_with_bounding_boxes = draw_boxes(boxes, labels, classes, eigencam_image_renormalized)
+    return image_with_bounding_boxes
+
+
+st.write("This shows the CAM computed accross the entire image, normalized to be between 0 and 1, using even pixels that are outside the boxes. The CAM inside can be re-normalized every bounding box, and the maximum value can be taken in the overlaps between the boxes.")
+a = renormalize_cam_in_bounding_boxes(boxes, image_float_np, grayscale_cam)
+plt.imshow(a, interpolation='nearest')
+plt.show()
+fig, ax = plt.subplots()
+ax.imshow(a, interpolation='nearest')
+st.pyplot(fig)
+st.write("IMAGE AFTER OBJECT DETECTION WITH AblationCAM:")
+st.write("AblationCAM is a technique in computer vision, used with Convolutional Neural Networks (CNNs), for generating visual explanations of model decisions by systematically ablating (modifying) feature maps and observing the impact on the output.")
+st.write("Defining a custom Ablation Layer:")
+st.code(
+"def set_next_batch(self, input_batch_index, activations, num_channels_to_ablate): ")
+st.code("def __call__(self, x)")
+
+# Display the plot in Streamlit
+
+from pytorch_grad_cam import AblationCAM
+from pytorch_grad_cam.ablation_layer import AblationLayerFasterRCNN
+cam = AblationCAM(model,
+               target_layers,
+               use_cuda=torch.cuda.is_available(),
+               reshape_transform=fasterrcnn_reshape_transform,
+               ablation_layer=AblationLayerFasterRCNN())
+
+grayscale_cam = cam(input_tensor, targets=targets)[0, :]
+a=renormalize_cam_in_bounding_boxes(boxes, image_float_np, grayscale_cam)
+plt.imshow(a, interpolation='nearest')
+plt.show()
+fig, ax = plt.subplots()
+ax.imshow(a, interpolation='nearest')
+
+# Display the plot in Streamlit
+st.pyplot(fig)
+
+st.write("Ablating the channels : ")
+
+float_input = st.number_input('Enter what fraction of channels to ablate', step=0.01)
+
+ratio_channels_to_ablate = float_input
+cam = AblationCAM(model,
+               target_layers,
+               use_cuda=torch.cuda.is_available(),
+               reshape_transform=fasterrcnn_reshape_transform,
+               ablation_layer=AblationLayerFasterRCNN(),
+               ratio_channels_to_ablate=ratio_channels_to_ablate)
+
+grayscale_cam = cam(input_tensor, targets=targets)[0, :]
+a=renormalize_cam_in_bounding_boxes(boxes, image_float_np, grayscale_cam)
+plt.imshow(a, interpolation='nearest')
+plt.show()
+fig, ax = plt.subplots()
+ax.imshow(a, interpolation='nearest')
+
+# Display the plot in Streamlit
+st.pyplot(fig)
+# ratio_channels_to_ablate = 0.01
+#
+# cam = AblationCAM(model,
+#                target_layers,
+#                use_cuda=torch.cuda.is_available(),
+#                reshape_transform=fasterrcnn_reshape_transform,
+#                ablation_layer=AblationLayerFasterRCNN(),
+#                ratio_channels_to_ablate=ratio_channels_to_ablate)
+#
+# grayscale_cam = cam(input_tensor, targets=targets)[0, :]
+# a = renormalize_cam_in_bounding_boxes(boxes, image_float_np, grayscale_cam)
+# plt.imshow(a, interpolation='nearest')
+# plt.show()
+#
+# fig, ax = plt.subplots()
+# ax.imshow(a, interpolation='nearest')
+#
+# # Display the plot in Streamlit
+# st.pyplot(fig)
