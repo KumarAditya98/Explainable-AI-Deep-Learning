@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c76cc38b-41ba-4582-90e2-261d88f648fc" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Deep_Learning_Team_2.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Deep_Learning_Team_2.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XAI Demos.py" beforeDir="false" afterPath="$PROJECT_DIR$/XAI Demos.py" afterDir="false" />
-    </list>
+    <list default="true" id="c76cc38b-41ba-4582-90e2-261d88f648fc" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -30,6 +23,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "true",
+    "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/medhaswetasen/Documents/GitHub/Deep_Learning_Team_2",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -56,15 +50,20 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$Model_interpretability_with_Integrated_Gradients.coverage" NAME="Model interpretability with Integrated Gradients Coverage Results" MODIFIED="1701580155681" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
-    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$deconvnet.coverage" NAME="deconvnet Coverage Results" MODIFIED="1701612160588" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
-    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$Feature_map_visualization.coverage" NAME="Feature map visualization Coverage Results" MODIFIED="1701576689524" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
-    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$SHAP_on_MNIST.coverage" NAME="SHAP on MNIST Coverage Results" MODIFIED="1701574024702" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
-    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$ForGrad.coverage" NAME="ForGrad Coverage Results" MODIFIED="1701611892653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
+    <SUITE FILE_PATH="coverage/Project_DeepLearning$test_script.coverage" NAME="test_script Coverage Results" MODIFIED="1701734603567" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/AK-Codes/Testing-Files" />
+    <SUITE FILE_PATH="coverage/Project_DeepLearning$LIME_Test.coverage" NAME="LIME-Test Coverage Results" MODIFIED="1701237446896" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/AK-Codes" />
+    <SUITE FILE_PATH="coverage/Project_DeepLearning$Custom_Model_XAI_Streamlit.coverage" NAME="Custom-Model-XAI-Streamlit Coverage Results" MODIFIED="1701568782885" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/AK-Codes" />
     <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$visualizing_cnn_activations_gradcam_tutorial.coverage" NAME="visualizing_cnn_activations_gradcam_tutorial Coverage Results" MODIFIED="1701571593150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
+    <SUITE FILE_PATH="coverage/Project_DeepLearning$Main.coverage" NAME="Main Coverage Results" MODIFIED="1701234585803" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/streamlit-interface" />
+    <SUITE FILE_PATH="coverage/Project_DeepLearning$LIME_streamlit.coverage" NAME="LIME-streamlit Coverage Results" MODIFIED="1701298410277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/AK-Codes" />
+    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$Feature_map_visualization.coverage" NAME="Feature map visualization Coverage Results" MODIFIED="1701576689524" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
     <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$celeba_gan.coverage" NAME="celeba_gan Coverage Results" MODIFIED="1701189489354" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/fake_faces_data_generation" />
-    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$dcgan_faces_tutorial.coverage" NAME="dcgan_faces_tutorial Coverage Results" MODIFIED="1701207731622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/fake_faces_data_generation" />
     <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$L2X__learning_to_explain__on_MNIST.coverage" NAME="L2X (learning to explain) on MNIST Coverage Results" MODIFIED="1701570850123" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
+    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$deconvnet.coverage" NAME="deconvnet Coverage Results" MODIFIED="1701612160588" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
+    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$Model_interpretability_with_Integrated_Gradients.coverage" NAME="Model interpretability with Integrated Gradients Coverage Results" MODIFIED="1701580155681" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
+    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$ForGrad.coverage" NAME="ForGrad Coverage Results" MODIFIED="1701611892653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
+    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$dcgan_faces_tutorial.coverage" NAME="dcgan_faces_tutorial Coverage Results" MODIFIED="1701207731622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/fake_faces_data_generation" />
+    <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$SHAP_on_MNIST.coverage" NAME="SHAP on MNIST Coverage Results" MODIFIED="1701574024702" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
     <SUITE FILE_PATH="coverage/Deep_Learning_Team_2$RISE.coverage" NAME="RISE Coverage Results" MODIFIED="1701612401126" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/XAI" />
   </component>
 </project>
