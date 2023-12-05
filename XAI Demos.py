@@ -145,6 +145,8 @@ if st.session_state["phase2"] == True:
         st.markdown("Randomized Input Sampling for Explanation of Black-box Models")
         st.markdown("The Rise method is a perturbation-based method for computer vision, it generates binary masks and study the behavior of the model on masked images. The pixel influence score is the mean of all the obtained scores when the pixel was not masked.")
         st.image("download.png")
+        st.link_button("Go to research paper", url="https://arxiv.org/pdf/1806.07421.pdf")
+        st.link_button("Go to source code", url="https://github.com/deel-ai/xplique/blob/master/xplique/attributions/rise.py")
         nb_samples = st.number_input('Enter the sample number of masks:', step=1000)
         grid_size = st.number_input('Enter the grid size:', step=1)
         preservation_probability = st.number_input('Enter the probability of pixels to be preserved: ', step=0.1)
@@ -169,6 +171,8 @@ if st.session_state["phase2"] == True:
     
     if option_xai == 'Integrated Gradients':
         st.markdown("Integrated Gradients is a visualization technique resulting of a theoretical search for an explanatory method that satisfies two axioms, Sensitivity and Implementation Invariance (Sundararajan et al.)")
+        st.link_button("Go to research paper", url="https://arxiv.org/pdf/1703.01365.pdf")
+        st.link_button("Go to source code", url="https://github.com/deel-ai/xplique/blob/master/xplique/attributions/integrated_gradients.py")
         baseline_value = st.number_input('Enter the sample number of masks:', step=0.01)
         steps = st.number_input('Enter the sample number of masks:', step=10)
         explainer = IntegratedGradients(model,
