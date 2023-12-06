@@ -27,6 +27,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="2YT5610fJKWiotO7VBiHEQbrXb1" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -64,6 +67,87 @@
       <workItem from="1701737189200" duration="547000" />
       <workItem from="1701797661578" duration="6536000" />
     </task>
+    <task id="LOCAL-00006" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701300803626</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1701300803626</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701300811289</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1701300811289</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701303206887</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1701303206887</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701310619741</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1701310619741</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701552049857</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1701552049857</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701569053069</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1701569053069</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701569061741</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1701569061741</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701577667892</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1701577667892</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701579475208</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1701579475208</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Customizing-LIME-Streamlit">
+      <option name="closed" value="true" />
+      <created>1701643436646</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1701643436646</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

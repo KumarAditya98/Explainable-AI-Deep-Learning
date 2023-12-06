@@ -5,7 +5,35 @@
       <paths name="ubuntu@54.173.169.228:22 key">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/ubuntu/deep_t2" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/ubuntu/DL" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="DLL">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/DL" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@3.236.29.25:22 key">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@3.92.192.138:22 key">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/DL" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@3.92.192.138:22 key (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/DL" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
