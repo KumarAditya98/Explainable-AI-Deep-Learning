@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="e9e6ec49-08c5-4ba2-a18a-1eddbfb43c08" name="DL">
+        <fileTransfer accessType="SFTP" host="3.92.192.138" port="22" sshConfigId="641f1ca0-6a56-45ae-ad7c-5d4638f4b173" sshConfig="ubuntu@3.92.192.138:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="40dc3736-fc95-4e46-8f9f-7f530381bde8" name="DLL">
+        <fileTransfer accessType="SFTP" host="3.92.192.138" port="22" sshConfigId="641f1ca0-6a56-45ae-ad7c-5d4638f4b173" sshConfig="ubuntu@3.92.192.138:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
