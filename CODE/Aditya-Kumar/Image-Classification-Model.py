@@ -25,7 +25,8 @@ from tensorflow.keras.utils import plot_model
 import warnings
 
 warnings.filterwarnings("ignore")
-
+# Dataset downloaded from - https://www.kaggle.com/datasets/ashishsaxena2209/animal-image-datasetdog-cat-and-panda/data
+# Refer this website for dataset structure and download before running this file. 
 dir_ = os.path.join('dataset/animals/animals/')
 
 train_datagen = ImageDataGenerator(
